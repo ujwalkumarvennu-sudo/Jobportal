@@ -1,0 +1,6 @@
+__pycache__/
+.flask_cache/
+instance/
+*.db
+.env
+static/resumes/

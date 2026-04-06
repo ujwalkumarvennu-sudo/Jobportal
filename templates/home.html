@@ -1,0 +1,83 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div
+    style="text-align: center; padding: 5rem 1.5rem; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%); border-radius: var(--radius-lg); margin-bottom: 4rem; border: 1px solid rgba(79, 70, 229, 0.1);">
+    <span class="badge"
+        style="background: var(--card-bg); color: var(--primary); font-size: 0.9rem; margin-bottom: 1.5rem; padding: 0.5rem 1rem; border: 1px solid rgba(79,70,229,0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.05);">🚀
+        Welcome to the Future of Hiring</span>
+    <h1
+        style="font-size: 4rem; font-weight: 800; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1.15; letter-spacing: -1px;">
+        Find your dream job <br />
+        <span
+            style="background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">faster
+            than ever.</span>
+    </h1>
+    <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 650px; margin: 0 auto 3rem; line-height: 1.7;">
+        Join thousands of professionals discovering top-tier roles directly from verified employers and live global web
+        data.
+    </p>
+
+    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <a href="{{ url_for('jobs') }}" class="btn"
+            style="padding: 1.2rem 3rem; font-size: 1.15rem; border-radius: 50px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);">Explore
+            Jobs</a>
+        {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('register') }}" class="btn btn-outline"
+            style="padding: 1.2rem 3rem; font-size: 1.15rem; border-radius: 50px; background: white;">Create Free
+            Account</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+    <!-- Card 1 -->
+    <div class="card"
+        style="text-align: center; padding: 3rem 2rem; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+        <div
+            style="width: 80px; height: 80px; background: #e0e7ff; color: #4f46e5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+            🎯
+        </div>
+        <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.5rem;">Smart Candidate Matching</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">Upload your resume and list your top
+            skills. Our internal intersection algorithm will instantly recommend the best local jobs tailored
+            exclusively to you.</p>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="card"
+        style="text-align: center; padding: 3rem 2rem; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+        <div
+            style="width: 80px; height: 80px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+            ⚡
+        </div>
+        <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.5rem;">Real-Time Data Streams</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">Why limit yourself? Query both our
+            native database and live global web APIs seamlessly. Search once, and see opportunities across the entire
+            internet.</p>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="card"
+        style="text-align: center; padding: 3rem 2rem; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+        <div
+            style="width: 80px; height: 80px; background: #fef9c3; color: #ca8a04; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+            🏢
+        </div>
+        <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.5rem;">Direct Employer Access</h3>
+        <p style="color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">Apply directly to verified employers
+            via our portal. Employers gain access to powerful dashboards where they can securely view your uploaded PDF
+            resume.</p>
+    </div>
+</div>
+
+<style>
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-color: rgba(79, 70, 229, 0.2);
+    }
+</style>
+{% endblock %}

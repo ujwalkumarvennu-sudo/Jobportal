@@ -1,0 +1,231 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+{% if expiring_soon %}
+<div class="notification-bar">
+    <div><strong>🔔 Attention:</strong> The following jobs are expiring today ({{ today }}):</div>
+    <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
+        {% for job in expiring_soon %}
+            <li style="margin-bottom: 5px;">
+                <a href="{{ url_for('job_detail', id=job.id) }}" style="color: inherit; text-decoration: underline; font-weight: 500;">
+                    <strong>{{ job.title }}</strong> at {{ job.company }} ↗
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    <div style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;">Hurry up and apply before it's too late!</div>
+</div>
+{% endif %}
+
+<div>
+    <h2 class="page-title">Discover Opportunities</h2>
+    <p class="page-desc">Find your next role from our curated list of local and global real-time positions.</p>
+</div>
+
+    <form method="GET" action="/jobs" style="margin: 2.5rem 0 1rem 0; display: flex; gap: 15px; align-items: stretch; max-width: 800px;">
+    <div style="flex: 1; position: relative;">
+        <!-- Search icon -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 1rem; top: 1rem;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="live-search" name="q" placeholder="Enter a job title, keyword, or company..." class="form-control" value="{{ request.args.get('q', '') }}" style="width: 100%; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 1rem 1.5rem 1rem 3rem; font-size: 1.1rem; border-radius: 50px;">
+    </div>
+    <button type="submit" class="btn" style="padding: 0 2rem; font-size: 1.1rem; border-radius: 50px; background: var(--gradient);">Search Live Jobs</button>
+</form>
+
+<div style="display: flex; gap: 1rem; margin-bottom: 2.5rem; max-width: 800px; flex-wrap: wrap;">
+    <select id="filter-type" class="form-control" style="border-radius: 20px; font-size: 0.9rem; flex: 1; min-width: 140px;">
+        <option value="">All Job Types</option>
+        <option value="Technical">Technical</option>
+        <option value="Non-Technical">Non-Technical</option>
+    </select>
+    <select id="filter-status" class="form-control" style="border-radius: 20px; font-size: 0.9rem; flex: 1; min-width: 140px;">
+        <option value="">All Status</option>
+        <option value="Live">Live (External)</option>
+        <option value="Verified">Verified (Local)</option>
+    </select>
+    <select id="filter-location" class="form-control" style="border-radius: 20px; font-size: 0.9rem; flex: 1; min-width: 140px;">
+        <option value="">🌍 All Locations</option>
+        <option value="remote">🏠 Remote</option>
+        <optgroup label="🇺🇸 USA">
+            <option value="new york">New York</option>
+            <option value="san francisco">San Francisco</option>
+            <option value="austin">Austin</option>
+            <option value="seattle">Seattle</option>
+        </optgroup>
+        <optgroup label="🇬🇧 UK">
+            <option value="london">London</option>
+            <option value="manchester">Manchester</option>
+        </optgroup>
+        <optgroup label="🇪🇺 Europe">
+            <option value="berlin">Berlin</option>
+            <option value="paris">Paris</option>
+            <option value="amsterdam">Amsterdam</option>
+        </optgroup>
+        <optgroup label="🇮🇳 India">
+            <option value="bangalore">Bangalore</option>
+            <option value="mumbai">Mumbai</option>
+            <option value="hyderabad">Hyderabad</option>
+        </optgroup>
+    </select>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("live-search");
+        const filterType = document.getElementById("filter-type");
+        const filterStatus = document.getElementById("filter-status");
+        const filterLocation = document.getElementById("filter-location");
+        const cards = document.querySelectorAll(".job-card");
+
+        function filterJobs() {
+            const query = searchInput.value.toLowerCase();
+            const type = filterType.value;
+            const status = filterStatus.value;
+            const locationVal = filterLocation.value.toLowerCase();
+
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                const cardType = card.getAttribute('data-type');
+                const cardStatus = card.getAttribute('data-status');
+                const cardLocation = card.getAttribute('data-location').toLowerCase();
+                let show = true;
+
+                if (query && !text.includes(query)) show = false;
+                if (type && cardType !== type) show = false;
+                if (status && cardStatus !== status) show = false;
+                if (locationVal && !cardLocation.includes(locationVal)) show = false;
+
+                card.style.display = show ? "block" : "none";
+            });
+        }
+
+        searchInput.addEventListener("keyup", filterJobs);
+        filterType.addEventListener("change", filterJobs);
+        filterStatus.addEventListener("change", filterJobs);
+        filterLocation.addEventListener("change", filterJobs);
+    });
+</script>
+
+{% if request.args.get('q') %}
+<div style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.2rem;">Showing results for "<span style="color: var(--primary);">{{ request.args.get('q') }}</span>"</h3>
+</div>
+{% endif %}
+
+<div class="jobs-grid">
+    {% for job in jobs %}
+    <div class="card job-card" data-type="{{ job.job_type }}" data-status="Verified" data-location="{% if job.location %}{{ job.location }}{% else %}Remote{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <span class="badge {% if job.job_type == 'Technical' %}tech{% else %}non-tech{% endif %}">
+                {{ job.job_type }}
+            </span>
+            {% if job.last_date == today %}
+            <span class="badge" style="background: #fee2e2; color: #dc2626;">Expiring Today</span>
+            {% else %}
+            <span class="badge" style="background: #e0f2fe; color: #0369a1;">Verified</span>
+            {% endif %}
+        </div>
+        
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">{{ job.title }}</h3>
+        <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            {{ job.company }} <span style="opacity: 0.5;">•</span> {% if job.location %}{{ job.location }}{% else %}Remote{% endif %}
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            {% if job.salary %}
+            <div style="font-weight: 600; font-size: 1.1rem; color: var(--success); margin-bottom: 0.3rem;">{{ job.salary }}</div>
+            {% endif %}
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Closes: {{ job.last_date }}</div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; width: 100%;">
+            <a href="{{ url_for('job_detail', id=job.id) }}" class="btn" style="flex: 1;">View Details</a>
+            {% if current_user.is_authenticated and current_user.role == 'seeker' %}
+            <form action="{{ url_for('save_job', job_id=job.id) }}" method="POST" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline" style="padding: 0.7rem; display: flex; align-items: center; justify-content: center; height: 100%; border-radius: 8px; width: 44px;" title="{% if job in current_user.saved_jobs %}Unsave Job{% else %}Save Job{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if job in current_user.saved_jobs %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Real-time jobs seamlessly integrated into the grid -->
+    {% for job in external_jobs %}
+    <div class="card job-card" data-type="{{ job.job_type }}" data-status="Live" data-location="{% if job.location %}{{ job.location }}{% else %}Remote{% endif %}" style="border: 1px dashed var(--primary); position: relative;">
+        <!-- decorative stripe -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #10b981, #3b82f6); border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg);"></div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <span class="badge {% if job.job_type == 'Technical' %}tech{% else %}non-tech{% endif %}">
+                {{ job.job_type }}
+            </span>
+            <span class="badge" style="background: #10b981; color: white; display: flex; align-items: center; gap: 4px;">
+                <span style="display: inline-block; width: 6px; height: 6px; background: white; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                Live
+            </span>
+        </div>
+        
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem;">{{ job.title }}</h3>
+        <div style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            {{ job.company }} <span style="opacity: 0.5;">•</span> {{ job.location }}
+        </div>
+        
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.5;">
+            {{ job.description }}
+        </p>
+        
+        <a href="{{ job.apply_link }}" target="_blank" class="btn btn-outline" style="width: 100%;">Apply Externally ↗</a>
+    </div>
+    {% endfor %}
+    
+    {% if not jobs and not external_jobs %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom: 1rem;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">No matching jobs found</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">We couldn't find any roles matching your search criteria.</p>
+        <a href="/" class="btn btn-outline">Clear Search</a>
+    </div>
+    {% endif %}
+</div>
+
+{% if pagination and pagination.pages > 1 %}
+<div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem;">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for(request.endpoint, page=pagination.prev_num, q=request.args.get('q', '')) }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">Previous</a>
+    {% endif %}
+    
+    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if page_num %}
+            {% if page_num == pagination.page %}
+                <span class="btn" style="padding: 0.5rem 1rem;">{{ page_num }}</span>
+            {% else %}
+                <a href="{{ url_for(request.endpoint, page=page_num, q=request.args.get('q', '')) }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">{{ page_num }}</a>
+            {% endif %}
+        {% else %}
+            <span style="padding: 0.5rem; color: var(--text-muted);">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if pagination.has_next %}
+    <a href="{{ url_for(request.endpoint, page=pagination.next_num, q=request.args.get('q', '')) }}" class="btn btn-outline" style="padding: 0.5rem 1rem;">Next</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<style>
+    .job-card:hover {
+        box-shadow: var(--shadow-Hover);
+        border-color: rgba(79, 70, 229, 0.3);
+    }
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 1; }
+        100% { transform: scale(0.95); opacity: 0.5; }
+    }
+</style>
+
+{% endblock %}

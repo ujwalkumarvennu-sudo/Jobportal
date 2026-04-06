@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h2 class="page-title">Candidate Dashboard</h2>
+    <p class="page-desc">Manage your profile, upload your resume, and discover matching jobs.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+    <!-- Sidebar: Profile & Resume -->
+    <div>
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem;">My Profile</h3>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    <label>{{ form.skills.label }}</label>
+                    {{ form.skills(class="form-control", placeholder="e.g. Python, SQL, React") }}
+                </div>
+                <div class="form-group">
+                    <label>{{ form.location.label }}</label>
+                    {{ form.location(class="form-control", placeholder="e.g. Remote, New York") }}
+                </div>
+                {{ form.submit(class="btn", style="width: 100%;") }}
+            </form>
+        </div>
+        
+        <div class="card">
+            <h3 style="margin-bottom: 1rem;">My Resume</h3>
+            {% if resume %}
+                <div style="margin-bottom: 1rem; color: var(--success); font-weight: 500;">
+                    ✓ Resume Uploaded
+                </div>
+            {% endif %}
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group">
+                    <label>Upload New Resume (PDF only)</label>
+                    <input type="file" name="resume" class="form-control" accept=".pdf" required>
+                </div>
+                <button type="submit" class="btn btn-outline" style="width: 100%;">Upload PDF</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Main Content: Matches & Apps -->
+    <div>
+        <!-- Recommended Jobs -->
+        <h3 style="margin-bottom: 1rem;">Recommended Jobs (Based on Skills)</h3>
+        {% if recommended %}
+            <div style="display: grid; gap: 1rem;">
+            {% for job in recommended %}
+                <div class="card" style="border-left: 4px solid var(--success);">
+                    <h4>{{ job.title }} <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: normal;">at {{ job.company }}</span></h4>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Requires: <strong>{{ job.skills_required }}</strong></p>
+                    <div style="margin-top: 1rem;">
+                        <a href="{{ url_for('job_detail', id=job.id) }}" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem;">View Job</a>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; color: var(--text-muted);">
+                Add skills to your profile to see recommended jobs!
+            </div>
+        {% endif %}
+        
+        <!-- My Applications -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">My Applications</h3>
+        {% if applications %}
+            <div style="display: grid; gap: 1rem;">
+            {% for app in applications %}
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <h4>{{ app.job.title }} <span style="font-size: 0.9rem; color: var(--text-muted); font-weight: normal;">at {{ app.job.company }}</span></h4>
+                        {% if app.ai_score is not none %}
+                        <div class="badge" title="AI Match Score" style="background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%); color: white; display: flex; align-items: center; gap: 5px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            {{ app.ai_score }}% Match
+                        </div>
+                        {% endif %}
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Applied on: {{ app.applied_on.strftime('%Y-%m-%d') }} &bull; Status: <strong style="color: var(--primary);">{{ app.status }}</strong></p>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; color: var(--text-muted);">
+                You haven't applied to any jobs yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
