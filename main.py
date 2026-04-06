@@ -20,6 +20,11 @@ load_dotenv()
 
 app = Flask(__name__)
 
+import traceback
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return f"<pre>{traceback.format_exc()}</pre>", 500
+
 db_url = os.environ.get('DATABASE_URL', 'sqlite:///jobs.db')
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -28,6 +33,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default_secret_key_fallback')
 app.config['CACHE_TYPE'] = 'FileSystemCache'
 app.config['CACHE_DIR'] = '.flask_cache'
+os.makedirs(app.config['CACHE_DIR'], exist_ok=True)
 app.config['UPLOAD_FOLDER'] = 'static/resumes'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024 # 5MB max
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
