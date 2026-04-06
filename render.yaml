@@ -20,7 +20,3 @@ services:
         generateValue: true
       - key: PYTHON_VERSION
         value: 3.10.0
-    disk:
-      name: uploads
-      mountPath: /opt/render/project/src/static/resumes
-      sizeGB: 1
